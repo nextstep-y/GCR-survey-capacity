@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GCR Inspector Capacity Dashboard</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">GCR Inspector Capacity</p>
+          <h1>สรุปงานตรวจ Survey จาก Viber</h1>
+          <p id="summaryLine" class="summary-line">กำลังโหลดข้อมูลจาก Google Sheet...</p>
+        </div>
+        <div class="actions">
+          <a
+            class="sheet-link"
+            href="https://docs.google.com/spreadsheets/d/1ZaIHyL6iMFXmlYQoZHfQNdVRFU6Jy83dYgYqyASt3Q4/edit?gid=0#gid=0"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Open source Google Sheet"
+          >
+            Sheet
+          </a>
+          <button id="refreshButton" type="button" aria-label="Refresh dashboard data">
+            Refresh
+          </button>
+        </div>
+      </header>
+
+      <section class="status-strip" aria-label="latest status">
+        <div>
+          <span>Latest target date</span>
+          <strong id="targetDate">-</strong>
+        </div>
+        <div>
+          <span>Source group</span>
+          <strong id="viberGroup">GCR-ITD Survey</strong>
+        </div>
+        <div>
+          <span>Updated</span>
+          <strong id="lastUpdated">-</strong>
+        </div>
+      </section>
+
+      <section class="kpi-grid" aria-label="daily summary">
+        <article class="metric primary">
+          <span>Requests</span>
+          <strong id="requestCount">-</strong>
+          <small id="requestContext">latest day</small>
+        </article>
+        <article class="metric">
+          <span>Messages Read</span>
+          <strong id="messageCount">-</strong>
+          <small>raw transcript rows</small>
+        </article>
+        <article class="metric">
+          <span>Completed</span>
+          <strong id="completedCount">-</strong>
+          <small>confirmed in window</small>
+        </article>
+        <article class="metric warning">
+          <span>Unconfirmed</span>
+          <strong id="unconfirmedCount">-</strong>
+          <small>manual follow-up</small>
+        </article>
+        <article class="metric">
+          <span>Cancelled</span>
+          <strong id="cancelledCount">-</strong>
+          <small>target-day requests</small>
+        </article>
+        <article class="metric">
+          <span>Excess vs 2 GCR</span>
+          <strong id="excessCount">-</strong>
+          <small>daily pressure</small>
+        </article>
+      </section>
+
+      <section class="layout">
+        <article class="panel trend-panel">
+          <div class="panel-title">
+            <div>
+              <h2>Daily Demand Trend</h2>
+              <p>Request count compared with current GCR capacity.</p>
+            </div>
+            <div class="legend">
+              <span><i class="bar-dot"></i>Requests</span>
+              <span><i class="line-dot"></i>Capacity</span>
+            </div>
+          </div>
+          <div id="trendChart" class="trend-chart" aria-label="Daily demand chart"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-title">
+            <div>
+              <h2>Inspector Response</h2>
+              <p>Accepted work by recognized GCR inspectors.</p>
+            </div>
+          </div>
+          <div id="inspectorList" class="inspector-list"></div>
+        </article>
+      </section>
+
+      <section class="layout lower">
+        <article class="panel">
+          <div class="panel-title">
+            <div>
+              <h2>Manual Review Queue</h2>
+              <p>Requests without completion or requiring source review.</p>
+            </div>
+          </div>
+          <div id="reviewQueue" class="review-queue"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-title">
+            <div>
+              <h2>Evidence</h2>
+              <p>Source references and latest request excerpts.</p>
+            </div>
+          </div>
+          <div id="requestTable" class="request-table"></div>
+        </article>
+      </section>
+    </main>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>
