@@ -5,6 +5,8 @@ const sheets = {
   config: "Dashboard_Config",
 };
 
+const spreadsheetId = "1ZaIHyL6iMFXmlYQoZHfQNdVRFU6Jy83dYgYqyASt3Q4";
+
 const requestHeaders = [
   "request_id",
   "date",
@@ -135,7 +137,24 @@ function configValue(key, fallback = "-") {
 }
 
 async function fetchSheet(sheet) {
-  const response = await fetch(`/api/sheet?sheet=${encodeURIComponent(sheet)}`);
+  const directUrl = new URL(
+    `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq`,
+  );
+  directUrl.searchParams.set("tqx", "out:csv");
+  directUrl.searchParams.set("sheet", sheet);
+
+  const shouldUseProxy =
+    window.location.protocol !== "file:" && window.location.port === "4173";
+  let response;
+  if (shouldUseProxy) {
+    const proxyPath = `/api/sheet?sheet=${encodeURIComponent(sheet)}`;
+    response = await fetch(proxyPath);
+    if (response.status === 404 || response.status === 405) {
+      response = await fetch(directUrl);
+    }
+  } else {
+    response = await fetch(directUrl);
+  }
   if (!response.ok) {
     throw new Error(`Cannot load ${sheet}: ${response.status}`);
   }
@@ -301,10 +320,10 @@ function render() {
 
 $("refreshButton").addEventListener("click", () => {
   loadData().catch((error) => {
-    $("summaryLine").textContent = `โหลดข้อมูลไม่สำเร็จ: ${error.message}`;
+    $("summaryLine").textContent = `โหลดข้อมูลไม่สำเร็จ: ${error.message}. ถ้าเปิดจาก static preview ให้รัน node web-dashboard/server.mjs แล้วเปิด http://localhost:4173`;
   });
 });
 
 loadData().catch((error) => {
-  $("summaryLine").textContent = `โหลดข้อมูลไม่สำเร็จ: ${error.message}`;
+  $("summaryLine").textContent = `โหลดข้อมูลไม่สำเร็จ: ${error.message}. ถ้าเปิดจาก static preview ให้รัน node web-dashboard/server.mjs แล้วเปิด http://localhost:4173`;
 });
