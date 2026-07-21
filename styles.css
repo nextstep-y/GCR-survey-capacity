@@ -182,6 +182,11 @@ h2 {
   min-height: 310px;
 }
 
+.monthly-panel {
+  min-height: 0;
+  margin-bottom: 14px;
+}
+
 .panel-title {
   display: flex;
   justify-content: space-between;
@@ -274,6 +279,73 @@ h2 {
   gap: 10px;
 }
 
+.monthly-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.month-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfb;
+  padding: 14px;
+}
+
+.month-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.month-card strong,
+.month-card span {
+  display: block;
+}
+
+.month-card span {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.month-card b {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.month-bar-track {
+  height: 8px;
+  border-radius: 999px;
+  background: #edf2ef;
+  margin: 14px 0 12px;
+  overflow: hidden;
+}
+
+.month-bar {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--green), var(--blue));
+}
+
+.month-card dl {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 0;
+}
+
+.month-card dt {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.month-card dd {
+  margin: 3px 0 0;
+  font-weight: 700;
+}
+
 .inspector-card,
 .review-card,
 .request-row {
@@ -342,6 +414,10 @@ h2 {
 
   .layout,
   .layout.lower {
+    grid-template-columns: 1fr;
+  }
+
+  .monthly-summary {
     grid-template-columns: 1fr;
   }
 }

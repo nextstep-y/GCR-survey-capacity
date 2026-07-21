@@ -13,6 +13,11 @@ const sheetGids = {
 };
 
 const spreadsheetId = "1ZaIHyL6iMFXmlYQoZHfQNdVRFU6Jy83dYgYqyASt3Q4";
+const fallbackMonthlySummary = [
+  { month: "2026-05", requests: 38, days: 21, avg: 1.81, max: 3, through: "2026-05-31" },
+  { month: "2026-06", requests: 62, days: 22, avg: 2.82, max: 6, through: "2026-06-30" },
+  { month: "2026-07", requests: 60, days: 17, avg: 3.53, max: 6, through: "2026-07-20" },
+];
 
 const requestHeaders = [
   "request_id",
@@ -139,8 +144,46 @@ function formatDate(value) {
   });
 }
 
+function formatMonth(value) {
+  const parsed = new Date(`${value}-01T00:00:00`);
+  if (Number.isNaN(parsed.valueOf())) return value;
+  return parsed.toLocaleDateString("en-GB", {
+    month: "short",
+    year: "numeric",
+  });
+}
+
 function configValue(key, fallback = "-") {
   return state.config[key]?.value || fallback;
+}
+
+function parseMonthlyNote(note = "") {
+  return Object.fromEntries(
+    note
+      .split(";")
+      .map((part) => part.split("="))
+      .filter(([key, value]) => key && value)
+      .map(([key, value]) => [key.trim(), value.trim()]),
+  );
+}
+
+function monthlyRowsFromConfig() {
+  const rows = Object.values(state.config)
+    .filter((row) => row.key?.startsWith("monthly_"))
+    .map((row) => {
+      const note = parseMonthlyNote(row.note);
+      return {
+        month: row.key.replace("monthly_", ""),
+        requests: asNumber(row.value),
+        days: asNumber(note.days),
+        avg: Number(note.avg || 0),
+        max: asNumber(note.max),
+        through: note.through || "",
+      };
+    })
+    .filter((row) => row.month && row.requests > 0)
+    .sort((a, b) => a.month.localeCompare(b.month));
+  return rows.length ? rows : fallbackMonthlySummary;
 }
 
 function googleCsvUrl(sheet, mode = "sheet") {
@@ -269,6 +312,36 @@ function renderTrend() {
     .join("");
 }
 
+function renderMonthlySummary() {
+  const container = $("monthlySummary");
+  const rows = monthlyRowsFromConfig();
+  const maxRequests = Math.max(1, ...rows.map((row) => row.requests));
+  container.innerHTML = rows
+    .map((row) => {
+      const width = Math.max(8, Math.round((row.requests / maxRequests) * 100));
+      return `
+        <article class="month-card">
+          <header>
+            <div>
+              <strong>${formatMonth(row.month)}</strong>
+              <span>through ${formatDate(row.through)}</span>
+            </div>
+            <b>${row.requests}</b>
+          </header>
+          <div class="month-bar-track">
+            <div class="month-bar" style="width:${width}%"></div>
+          </div>
+          <dl>
+            <div><dt>Days</dt><dd>${row.days}</dd></div>
+            <div><dt>Avg/day</dt><dd>${row.avg.toFixed(2)}</dd></div>
+            <div><dt>Max/day</dt><dd>${row.max}</dd></div>
+          </dl>
+        </article>
+      `;
+    })
+    .join("");
+}
+
 function renderInspectors(latest) {
   const container = $("inspectorList");
   const rows = state.response.filter((row) => row.date === latest.date);
@@ -338,6 +411,7 @@ function renderRequests(latest) {
 function render() {
   const latest = latestDaily();
   renderKpis(latest);
+  renderMonthlySummary();
   renderTrend();
   renderInspectors(latest);
   renderReviewQueue(latest);
