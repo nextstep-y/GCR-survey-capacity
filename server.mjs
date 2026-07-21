@@ -7,6 +7,12 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const port = Number(process.env.PORT || 4173);
 const spreadsheetId =
   process.env.GCR_SHEET_ID || "1ZaIHyL6iMFXmlYQoZHfQNdVRFU6Jy83dYgYqyASt3Q4";
+const sheetGids = {
+  Daily_Capacity: "1002",
+  Inspection_Requests: "1001",
+  Inspector_Response: "1003",
+  Dashboard_Config: "1004",
+};
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -39,9 +45,15 @@ async function proxySheet(req, res) {
   );
   source.searchParams.set("tqx", "out:csv");
   source.searchParams.set("sheet", sheet);
+  source.searchParams.set("_", Date.now().toString());
 
   try {
-    const response = await fetch(source);
+    let response = await fetch(source);
+    if (!response.ok && sheetGids[sheet]) {
+      source.searchParams.delete("sheet");
+      source.searchParams.set("gid", sheetGids[sheet]);
+      response = await fetch(source);
+    }
     if (!response.ok) {
       send(
         res,

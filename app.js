@@ -5,6 +5,13 @@ const sheets = {
   config: "Dashboard_Config",
 };
 
+const sheetGids = {
+  Daily_Capacity: "1002",
+  Inspection_Requests: "1001",
+  Inspector_Response: "1003",
+  Dashboard_Config: "1004",
+};
+
 const spreadsheetId = "1ZaIHyL6iMFXmlYQoZHfQNdVRFU6Jy83dYgYqyASt3Q4";
 
 const requestHeaders = [
@@ -136,24 +143,43 @@ function configValue(key, fallback = "-") {
   return state.config[key]?.value || fallback;
 }
 
-async function fetchSheet(sheet) {
-  const directUrl = new URL(
+function googleCsvUrl(sheet, mode = "sheet") {
+  const url = new URL(
     `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq`,
   );
-  directUrl.searchParams.set("tqx", "out:csv");
-  directUrl.searchParams.set("sheet", sheet);
+  url.searchParams.set("tqx", "out:csv");
+  if (mode === "gid") {
+    url.searchParams.set("gid", sheetGids[sheet]);
+  } else {
+    url.searchParams.set("sheet", sheet);
+  }
+  url.searchParams.set("_", Date.now().toString());
+  return url;
+}
 
+async function fetchCsvWithFallback(sheet) {
+  const first = await fetch(googleCsvUrl(sheet), { cache: "no-store" });
+  if (first.ok) return first;
+  if (sheetGids[sheet]) {
+    const second = await fetch(googleCsvUrl(sheet, "gid"), { cache: "no-store" });
+    if (second.ok) return second;
+    return second;
+  }
+  return first;
+}
+
+async function fetchSheet(sheet) {
   const shouldUseProxy =
     window.location.protocol !== "file:" && window.location.port === "4173";
   let response;
   if (shouldUseProxy) {
     const proxyPath = `/api/sheet?sheet=${encodeURIComponent(sheet)}`;
-    response = await fetch(proxyPath);
+    response = await fetch(proxyPath, { cache: "no-store" });
     if (response.status === 404 || response.status === 405) {
-      response = await fetch(directUrl);
+      response = await fetchCsvWithFallback(sheet);
     }
   } else {
-    response = await fetch(directUrl);
+    response = await fetchCsvWithFallback(sheet);
   }
   if (!response.ok) {
     throw new Error(`Cannot load ${sheet}: ${response.status}`);
